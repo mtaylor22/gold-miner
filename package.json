@@ -1,0 +1,22 @@
+{
+  "name": "vg-predictor-trainer",
+  "version": "1.0.0",
+  "description": "Trains VG Prediction Database",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mitchell Taylor",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.1.5",
+    "boom": "^4.2.0",
+    "bull": "^2.2.1",
+    "config": "^1.25.1",
+    "hapi": "^16.1.0",
+    "joi": "^10.2.2",
+    "lodash": "^4.17.4",
+    "mongodb": "^2.2.24",
+    "mongoose": "^4.8.6"
+  }
+}
