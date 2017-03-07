@@ -4,11 +4,13 @@ var Joi = require('joi'),
 
 exports.mine = {
     validate: {
-        query: {}
+        query: {
+            page: Joi.number()
+        }
     },
     handler: function(request, reply) {
     	console.log(JSON.stringify(queryBuilder));
-        queryBuilder.buildQuery(request.query);
+        queryBuilder.buildQuery(request.query, request.query.page || 0);
         reply({
         	success: false,
         	hello: 'world'

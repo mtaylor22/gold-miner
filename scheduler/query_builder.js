@@ -2,14 +2,15 @@
 // It should avoid running the same query twice
 var queryProcessor = require('./query_processor');
 module.exports = {
-	buildQuery : function(params){
+	buildQuery : function(params, offset){
 		const query = {
 		  page: {
-		    offset: 0,
-		    limit: 20,
+		    offset: offset || 0,
+		    limit: 50,
 		  },
 		  filter: {
-		    'createdAt-start': '2017-01-01T08:25:30Z',
+		    'createdAt-end': '2017-03-01T00:00:00Z',
+		    'createdAt-start': '2017-01-01T00:00:00Z',
 		    // playerNames: ['Dracary5'],
 		  }
 		};

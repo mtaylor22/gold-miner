@@ -6,7 +6,7 @@ var Queue = require('bull'),
 
 var loggingQueue = Queue('match logging', config.redis.port, config.redis.host);
 
-loggingQueue.process(matchLogger.logMatch);
+loggingQueue.process(1, matchLogger.logMatch);
 
 module.exports = {
 	enqueue: function(request, cb){
