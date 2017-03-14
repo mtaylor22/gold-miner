@@ -5,17 +5,35 @@ var Queue = require('bull'),
     matchLogger = require('./../match_logger');
 
 var loggingQueue = Queue('match logging', config.redis.port, config.redis.host);
+const uuidV1 = require('uuid/v1');
 
-loggingQueue.process(1, matchLogger.logMatch);
+var jobWaiter = {};
+
+loggingQueue.process(1, function(matchJob, done){
+    var cbkey;
+    if (matchJob.data && matchJob.data.cbkey){
+        cbkey = matchJob.data.cbkey;
+        delete matchJob.data['cbkey'];
+    }
+    matchLogger.logMatch(matchJob, function(err, result){
+        if (cbkey){
+            jobWaiter[cbkey] && jobWaiter[cbkey](null, result);
+        }
+        done(err, result);
+    });
+});
 
 module.exports = {
-	enqueue: function(request, cb){
+	enqueue: function(request, finalCb){
+	    if (finalCb){
+            var key = uuidV1();
+            request.cbkey = key;
+            jobWaiter[key] = finalCb;
+        }
 		loggingQueue.add(request, {
 			priority: 3, 
 			removeOnComplete:true, 
-			delay: 10*1000				//Note: a 10 second delay will prevent us from 
+			delay: 10*1000				//Note: a 10 second delay will prevent us from
 		});
-
-		if (cb) cb();
 	}
-}
+};

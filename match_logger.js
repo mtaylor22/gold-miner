@@ -13,19 +13,24 @@ const vainglory = new Vainglory(config.vg.apiKey, options);
 
 module.exports = {
 	logMatch: function(matchJob, done){
-		console.log("JOB: "+JSON.stringify(matchJob));
 		vainglory.matches.collection(matchJob.data).then(function(matches){
 			if (matches && matches.errors) console.error("results: "+JSON.stringify(matches));
 			var matchResults = processMatches(matches);
-			logResults(matchResults, done);
+			logResults(matchResults, function(err, results){
+                done(err, {
+                	'loggingResults': results,
+					'matches': matches
+				});
+			});
 		}).catch(function(error){
 			console.error("Query error", error);
 			done();
 		});
 	}
-}
+};
 
 function processMatches(data){
+	console.log("MAtch data: "+JSON.stringify(data));
 	var matches = data.match;
 	var players = {};
 	_.each(matches, function(match){
@@ -36,27 +41,27 @@ function processMatches(data){
 				var hero = attributes.actor;
 				if (hero) hero = hero.replace(/\*/g, '');
 				var winner = stats.winner,
-					assists = stats['assists'];
-					crystalMineCaptures = stats['crystalMineCaptures'];
-					deaths = stats['deaths'];
-					farm = stats['farm'];
-					goldMineCaptures = stats['goldMineCaptures'];
-					itemGrants = stats['itemGrants'];
-					itemSells = stats['itemSells'];
-					itemUses = stats['itemUses'];
-					items = stats['items'];
-					jungleKills = stats['jungleKills'];
-					karmaLevel = stats['karmaLevel'];
-					kills = stats['kills'];
-					krakenCaptures = stats['krakenCaptures'];
-					level = stats['level'];
-					minionKills = stats['minionKills'];
-					nonJungleMinionKills = stats['nonJungleMinionKills'];
-					skillTier = stats['skillTier'];
-					skinKey = stats['skinKey'];
-					turretCaptures = stats['turretCaptures'];
-					wentAfk = stats['wentAfk'];
-					winner = stats['winner'];
+					assists = stats['assists']||0;
+					crystalMineCaptures = stats['crystalMineCaptures']||0;
+					deaths = stats['deaths']||0;
+					farm = stats['farm']||0;
+					goldMineCaptures = stats['goldMineCaptures']||0;
+					itemGrants = stats['itemGrants']||[];
+					itemSells = stats['itemSells']||[];
+					itemUses = stats['itemUses']||[];
+					items = stats['items']||[];
+					jungleKills = stats['jungleKills']||0;
+					karmaLevel = stats['karmaLevel']||0;
+					kills = stats['kills']||0;
+					krakenCaptures = stats['krakenCaptures']||0;
+					level = stats['level']||0;
+					minionKills = stats['minionKills']||0;
+					nonJungleMinionKills = stats['nonJungleMinionKills']||0;
+					skillTier = stats['skillTier']||0;
+					skinKey = stats['skinKey']||"N/A";
+					turretCaptures = stats['turretCaptures']||0;
+					wentAfk = stats['wentAfk']||-1;
+					winner = stats['winner']||false;
 
 					incStat(players, hero, {
 						'assists': assists,
