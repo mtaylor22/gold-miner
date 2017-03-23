@@ -8,9 +8,10 @@ module.exports = {
 		    offset: offset || 0,
 		    limit: 50,
 		  },
+			sort: 'createdAt',
 		  filter: {
-		    'createdAt-end': '2017-03-01T00:00:00Z',
-		    'createdAt-start': '2017-01-01T00:00:00Z',
+		    // 'createdAt-end': '2017-03-22T00:00:00Z',
+		    // 'createdAt-start': '2017-01-01T00:00:00Z',
 		    // playerNames: ['Dracary5'],
 		  }
 		};

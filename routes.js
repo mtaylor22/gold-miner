@@ -5,5 +5,6 @@ var MinerController = require('./controllers/miner'),
 exports.endpoints = [
     { method: 'GET', path: '/predict', config: PredictorController.predict },
     { method: 'GET', path: '/mine', config: MinerController.mine },
-    { method: 'GET', path: '/matches', config: MatchesController.getMatches }
+    { method: 'GET', path: '/match', config: MatchesController.getMatches },
+    { method: 'GET', path: '/match/{match}', config: MatchesController.getMatch}
 ];

@@ -9,6 +9,7 @@
   "author": "Mitchell Taylor",
   "license": "ISC",
   "dependencies": {
+    "assert-plus": "^1.0.0",
     "async": "^2.1.5",
     "boom": "^4.2.0",
     "bull": "^2.2.1",
@@ -18,6 +19,7 @@
     "lodash": "^4.17.4",
     "mongodb": "^2.2.24",
     "mongoose": "^4.8.6",
+    "ng-resource": "^1.3.2",
     "uuid": "^3.0.1"
   }
 }

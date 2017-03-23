@@ -7,25 +7,50 @@ var Hero = require('./models/hero').Hero,
 
 //VainGlory Options
 const options = {
+    host: 'https://api.dc01.gamelockerapp.com/shards/',
+    region: 'na',
+    title: 'semc-vainglory'
 };
 
 const vainglory = new Vainglory(config.vg.apiKey, options);
 
 module.exports = {
 	logMatch: function(matchJob, done){
-		vainglory.matches.collection(matchJob.data).then(function(matches){
-			if (matches && matches.errors) console.error("results: "+JSON.stringify(matches));
-			var matchResults = processMatches(matches);
-			logResults(matchResults, function(err, results){
-                done(err, {
-                	'loggingResults': results,
-					'matches': matches
+		switch(matchJob.data.type){
+			case 'match':
+				delete matchJob.data.type;
+				vainglory.matches.single(matchJob.data.matchId).then(function(matches) {
+					matches.data = [matches.data];
+                    if (matches && matches.errors) console.error("results: "+JSON.stringify(matches));
+                    var matchResults = processMatches(matches);
+                    logResults(matchResults, function(err, results){
+                        done(err, {
+                            'loggingResults': results,
+                            'matches': matches
+                        });
+                    });
+				}).catch(function(error) {
+                    console.error("Query error", error);
+                    done();
 				});
-			});
-		}).catch(function(error){
-			console.error("Query error", error);
-			done();
-		});
+				break;
+			case 'matches':
+			default:
+				delete matchJob.data.type;
+                vainglory.matches.collection(matchJob.data).then(function(matches){
+                    if (matches && matches.errors) console.error("results: "+JSON.stringify(matches));
+                    var matchResults = processMatches(matches);
+                    logResults(matchResults, function(err, results){
+                        done(err, {
+                            'loggingResults': results,
+                            'matches': matches
+                        });
+                    });
+                }).catch(function(error){
+                    console.error("Query error", error);
+                    done();
+                });
+		}
 	}
 };
 
@@ -82,7 +107,7 @@ function processMatches(data){
 						'nonJungleMinionKills': nonJungleMinionKills,
 						'skillTier': skillTier,
 						'turretCaptures': turretCaptures,
-						'wentAfk': (wentAfk) ? 1 : 0,
+						'wentAfk': (wentAfk == -1) ? 0 : 1,
 						'hero': hero,
 						'winner': winner
 					});

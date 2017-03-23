@@ -33,7 +33,7 @@ module.exports = {
 		loggingQueue.add(request, {
 			priority: 3, 
 			removeOnComplete:true, 
-			delay: 10*1000				//Note: a 10 second delay will prevent us from
+			// delay: 10*1000				//Note: a 10 second delay will prevent us from
 		});
 	}
 };
