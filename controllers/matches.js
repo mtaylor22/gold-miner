@@ -1,8 +1,9 @@
 var Joi = require('joi'),
     Boom = require('boom'),
     _ = require('lodash');
-var queryProcessor = require('./../scheduler/query_processor');
-var predictionGenerator = require('./../prediction_generator');
+    var queryProcessor = require('./../scheduler/query_processor');
+    var predictionGenerator = require('./../prediction_generator');
+var insightGenerator = require('./../insight_generator');
 
 exports.getMatches = {
     cors: true,
@@ -72,6 +73,8 @@ exports.getMatch = {
             var simpleMatch = simplifyMatchResults(simplifyInput);
 
             console.log("Prediction input: "+JSON.stringify(simpleMatch));
+
+            insights = insightGenerator.gatherInsights(simpleMatch);
 
             predictionGenerator.predictMatch(simpleMatch, function(err, prediction){
                 if (err){

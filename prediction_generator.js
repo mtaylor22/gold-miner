@@ -6,7 +6,6 @@ const async = require('async'),
     Hero = require('./models/hero').Hero;
 
 exports.predictMatch = function(match, cb){
-    console.log("True match: "+JSON.stringify(match));
     if (match.constructor === Array) match = match[0];
     var teamA = {team: match.teams[0]},
         teamB = {team: match.teams[1]};
