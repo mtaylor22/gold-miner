@@ -1,5 +1,6 @@
 var Joi = require('joi'),
     Boom = require('boom'),
+    async = require('async'),
     _ = require('lodash');
     var queryProcessor = require('./../scheduler/query_processor');
     var predictionGenerator = require('./../prediction_generator');
@@ -20,12 +21,53 @@ exports.getMatches = {
             page: {
                 offset: 0,
                 limit: 50
-                },
-                sort: '-createdAt',
+            },
+            sort: '-createdAt',
             filter: {
                 'createdAt-start': minus3Hours.toISOString(),
                 'createdAt-end': now.toISOString(),
                 playerNames: [],
+                teamNames: []
+            }
+        };
+        queryProcessor.enqueue(query, function(err, results){
+            var matches_short = _.map(results.matches.data, function(match){
+                return {
+                    id: match.id
+                }
+            });
+
+            var simpleMatch = simplifyMatchResults(results.matches.match);
+
+            reply({
+                success: true,
+                matches: simpleMatch
+            })
+        });
+    }
+};
+
+exports.getMatchesByPlayer = {
+    cors: true,
+    validate: {
+        params: {
+            player: Joi.string().required()
+        }
+    },
+    handler: function(request, reply) {
+        const now = new Date();
+        const minusOneYear = new Date(new Date() * 1 - 1000 * 3600 * 24 * 365);
+        const query = {
+            type: 'matches',
+            page: {
+                offset: 0,
+                limit: 50
+            },
+            sort: '-createdAt',
+            filter: {
+                'createdAt-start': minusOneYear.toISOString(),
+                'createdAt-end': now.toISOString(),
+                playerNames: [request.params.player],
                 teamNames: []
             }
         };
@@ -72,22 +114,30 @@ exports.getMatch = {
 
             console.log("Prediction input: "+JSON.stringify(simpleMatch));
 
-            insights = insightGenerator.gatherInsights(simpleMatch);
-
-            predictionGenerator.predictMatch(simpleMatch, function(err, prediction){
+            async.waterfall([
+                function gatherInsights(done){
+                    insightGenerator.gatherInsights(simpleMatch, function(err, insights){
+                        done(err, insights);
+                    });
+                },
+                function predictMatch(insights, done){
+                    predictionGenerator.predictMatch(simpleMatch, function(err, prediction){
+                        done(err, insights, prediction);
+                    });
+                }
+            ], function(err, insights, prediction){
                 if (err){
                     console.err("Failed to predict match: ", err);
                 }
 
-                console.log("Final prediction: "+JSON.stringify(prediction));
-
                 reply({
                     success: !err,
                     matches: simpleMatch,
+                    insights: insights,
                     prediction: prediction
                 });
-            });
 
+            });
         });
     }
 };
