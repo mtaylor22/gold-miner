@@ -36,8 +36,6 @@ exports.getMatches = {
                 }
             });
 
-            console.log("appropriate results: "+JSON.stringify(results.matches.match));
-
             var simpleMatch = simplifyMatchResults(results.matches.match);
 
             reply({
