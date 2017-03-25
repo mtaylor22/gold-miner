@@ -1,5 +1,6 @@
 // This library will collect and log all statistics from a single match (Miner!)
 var Hero = require('./models/hero').Hero,
+    Match = require('./models/match').Match,
 	Vainglory = require('vainglory'),
 	_ = require('lodash'),
 	async = require('async'),
@@ -59,6 +60,7 @@ function processMatches(data){
 	var matches = data.match;
 	var players = {};
 	_.each(matches, function(match){
+		Match.create({matchId: match.data.id, match: match}); // Cache the match, non-blocking
 		_.each(match.matchRoster, function(roster){
 			_.each(roster.rosterParticipants, function(participant){
 				var attributes = participant.data.attributes;
@@ -127,7 +129,24 @@ function incStat(players, hero, stats){
 		players[hero][stat] =  (players[hero][stat] + coeff * stats[stat]) || coeff * stats[stat];
 	}
 
-	players[hero].count = ++players[hero].count || 1;
+    players[hero].count = ++players[hero].count || 1;
+
+    for (var stat in stats){
+        if (stat=='winner' || stat=='hero') continue;
+
+        if (stats.winner) {
+            players[hero]["winTotal."+stat] = (players[hero]["winTotal."+stat] + stats[stat]) || stats[stat];
+        } else {
+            players[hero]["lossTotal."+stat] = (players[hero]["lossTotal."+stat] + stats[stat]) || stats[stat];
+        }
+    }
+
+    if (stats.winner) {
+        players[hero].winCount = ++players[hero].winCount || 1;
+	} else {
+        players[hero].lossCount = ++players[hero].lossCount || 1;
+    }
+
 	players[hero].ratio = (players[hero].ratio + coeff) || coeff;
 }
 

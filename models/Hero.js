@@ -1,10 +1,12 @@
-// This model will collect statistics for wins on a hero
+ // This model will collect statistics for wins on a hero
 
 var Mongoose = require('mongoose');
 
 module.exports = {
     Hero: Mongoose.model('hero', 
 		new Mongoose.Schema({
+            winTotal: { type: Object },
+            lossTotal: { type: Object },
 		    winRatio: { type: Number, default: 0 },
 		    dataSet: { type: Number, default: 0 },
 		    name: { type: String, required: true, unique: true },
@@ -30,6 +32,8 @@ module.exports = {
 			wentAfk: {type: Number, default: 0},
 			count: {type: Number, default: 0},
 			ratio: {type: Number, default: 0},
+            winCount: {type: Number, default: 0},
+            lossCount: {type: Number, default: 0}
 		})
 	)
 };

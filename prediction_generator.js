@@ -2,8 +2,8 @@
 // It should return a number between [0-1]
 
 const async = require('async'),
-    _ = require('lodash'),
-    Hero = require('./models/hero').Hero;
+        _ = require('lodash'),
+        Hero = require('./models/hero').Hero;
 
 exports.predictMatch = function(match, cb){
     if (match.constructor === Array) match = match[0];
@@ -63,6 +63,10 @@ var predictionModel = {
             }
             var score=0;
 
+
+
+
+
             if (hero["assists"]) score += player.stats["assists"] / hero["assists"];
             // if (hero["count"]) score += player.stats["count"] / hero["count"];
             if (hero["wentAfk"]) score += ((player.stats["wentAfk"] == -1) ? 0 : 1) / hero["wentAfk"];
@@ -84,9 +88,42 @@ var predictionModel = {
             if (hero["deaths"]) score += player.stats["deaths"] / hero["deaths"];
             if (hero["crystalMineCaptures"]) score += player.stats["crystalMineCaptures"] / hero["crystalMineCaptures"];
 
+            var playerStats = {
+                'assists': {count: player.stats["assists"], coefficient: 11},
+                'wentAfk': {count: (player.stats["wentAfk"] == -1) ? 0 : 1, coefficient: 1000},
+                'turretCaptures': {count: player.stats["turretCaptures"], coefficient: 1},
+                'skillTier': {count: player.stats["skillTier"], coefficient: 1},
+                'nonJungleMinionKills': {count: player.stats["nonJungleMinionKills"], coefficient: 1},
+                'minionKills': {count: player.stats["minionKills"], coefficient: 1},
+                'level': {count: player.stats["level"], coefficient: 1},
+                'krakenCaptures': {count: player.stats["krakenCaptures"], coefficient: 1},
+                'kills': {count: player.stats["kills"], coefficient: 10},
+                'karmaLevel': {count: player.stats["karmaLevel"], coefficient: 1},
+                'jungleKills': {count: player.stats["jungleKills"], coefficient: 1},
+                'items': {count: _.size(player.stats["items"]), coefficient: 1},
+                'itemUses': {count: _.size(player.stats["itemUses"]), coefficient: 1},
+                'itemSells': {count: _.size(player.stats["itemSells"]), coefficient: 1},
+                'itemGrants': {count: _.size(player.stats["itemGrants"]), coefficient: 1},
+                'goldMineCaptures': {count: player.stats["goldMineCaptures"], coefficient: 1},
+                'farm': {count: player.stats["farm"], coefficient: 1},
+                'deaths': {count: player.stats["deaths"], coefficient: 10},
+                'crystalMineCaptures': {count: player.stats["crystalMineCaptures"], coefficient: 1}
+            };
+
+            for (statName in playerStats) score += factorScore(statName, playerStats, hero);
+
             if (hero["ratio"]) score += (score * hero["ratio"]);
 
             cb(null, score);
         });
     }
 };
+
+function factorScore(statName, playerStats, hero){
+    if (!hero || !hero["winTotal"][statName]) return 0;
+    if (!playerStats || !playerStats[statName] || !playerStats[statName].count) return 0;
+
+    var stat = playerStats[statName];
+
+    return stat.coefficient * stat.count / hero["winTotal"][statName];
+}
