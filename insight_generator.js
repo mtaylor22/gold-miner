@@ -85,7 +85,7 @@ exports.gatherInsights = function(match, cb){
 
                     // Calculate the impact of the 'ideal' stat here
                     var pseudoStats = _.cloneDeep(match);
-                    pseudoStats = modifyStat(pseudoStats, player.actor, stat, playerStats[stat].hero);
+                    pseudoStats = modifyStat(pseudoStats, player.player, stat, playerStats[stat].hero);
                     calculateImpact(match, pseudoStats, player.actor, function(err, impact){
                         insight.impact = impact;
                         done(null, insight);
@@ -102,10 +102,10 @@ exports.gatherInsights = function(match, cb){
     }, cb);
 };
 
-function modifyStat(match, actor, stat, modification){
+function modifyStat(match, playerName, stat, modification){
     match.teams.forEach(function(team){
         team.players.forEach(function(player, i, playerArr){
-            if (player.actor == actor)
+            if (player.player == playerName)
                 playerArr[i].stats[stat] = modification;
         })
     });

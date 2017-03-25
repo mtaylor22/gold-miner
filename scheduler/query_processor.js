@@ -2,7 +2,16 @@
 
 var Queue = require('bull'),
     config = require('config'),
-    matchLogger = require('./../match_logger');
+    matchLogger = require('./../match_logger'),
+    Lock = require('node-redis-lock'),
+    redis = require('redis');
+
+const client = redis.createClient({
+    'host': config.redis.host,
+    'port': config.redis.port
+});
+
+var lock = new Lock({namespace: 'locking'}, client);
 
 var loggingQueue = Queue('match logging', config.redis.port, config.redis.host);
 const uuidV1 = require('uuid/v1');
@@ -10,16 +19,18 @@ const uuidV1 = require('uuid/v1');
 var jobWaiter = {};
 
 loggingQueue.process(1, function(matchJob, done){
-    var cbkey;
-    if (matchJob.data && matchJob.data.cbkey){
-        cbkey = matchJob.data.cbkey;
-        delete matchJob.data['cbkey'];
-    }
-    matchLogger.logMatch(matchJob, function(err, result){
-        if (cbkey){
-            jobWaiter[cbkey] && jobWaiter[cbkey](null, result);
+    lock.acquire('logging', 1000*10, 'master', function(e, r) {
+        var cbkey;
+        if (matchJob.data && matchJob.data.cbkey){
+            cbkey = matchJob.data.cbkey;
+            delete matchJob.data['cbkey'];
         }
-        done(err, result);
+        matchLogger.logMatch(matchJob, function(err, result){
+            if (cbkey){
+                jobWaiter[cbkey] && jobWaiter[cbkey](null, result);
+            }
+            done(err, result);
+        });
     });
 });
 
