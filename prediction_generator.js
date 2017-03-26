@@ -33,7 +33,6 @@ exports.predictMatch = function(match, cb){
         var minScore = 300;
 
 
-        console.log("Raw scores: "+JSON.stringify(teamAScore) + ' - ' + teamBScore);
 
         // var scaledScores = {
         //     a: (minScore<0) ? teamAScore + (-1*minScore) : teamAScore,
@@ -85,8 +84,6 @@ exports.predictMatch = function(match, cb){
 
         finalScores.a = Math.max(0, finalScores.a);
         finalScores.b = Math.max(0, finalScores.b);
-
-        console.log("Match here: "+JSON.stringify(match));
 
         var success = ((match.teams[0].won && finalScores.a >= finalScores.b) || (match.teams[1].won && finalScores.b >= finalScores.a));
         var matchId = match.id;
