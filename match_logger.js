@@ -56,7 +56,6 @@ module.exports = {
 };
 
 function processMatches(data){
-	console.log("MAtch data: "+JSON.stringify(data));
 	var matches = data.match;
 	var players = {};
 	_.each(matches, function(match){

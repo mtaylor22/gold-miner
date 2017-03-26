@@ -3,7 +3,8 @@
 
 const async = require('async'),
         _ = require('lodash'),
-        Hero = require('./models/hero').Hero;
+    Prediction = require('./models/prediction').Prediction,
+    Hero = require('./models/hero').Hero;
 
 exports.predictMatch = function(match, cb){
     if (match.constructor === Array) match = match[0];
@@ -24,12 +25,24 @@ exports.predictMatch = function(match, cb){
         }
 
         var teamAScore = results.teamA,
-            teamBScore = results.teamB,
-            minScore = Math.min(teamAScore, teamBScore);
+            teamBScore = results.teamB;
+
+        // var minScore = Math.min(teamAScore, teamBScore);
+
+        // Arbitrary scaler - this value represents how the prediction index translates to advantage percentage
+        var minScore = 300;
+
+
+        console.log("Raw scores: "+JSON.stringify(teamAScore) + ' - ' + teamBScore);
+
+        // var scaledScores = {
+        //     a: (minScore<0) ? teamAScore + (-1*minScore) : teamAScore,
+        //     b: (minScore<0) ? teamBScore + (-1*minScore) : teamBScore
+        // };
 
         var scaledScores = {
-            a: (minScore<0) ? teamAScore + (-1*minScore) : teamAScore,
-            b: (minScore<0) ? teamBScore + (-1*minScore) : teamBScore
+            a: teamAScore + minScore,
+            b: teamBScore + minScore
         };
 
         var scaledTotal = scaledScores.a + scaledScores.b;
@@ -40,6 +53,46 @@ exports.predictMatch = function(match, cb){
             a: (1 + scaledScores.a) / (2 + scaledScores.a + scaledScores.b),
             b: (1 + scaledScores.b) / (2 + scaledScores.a + scaledScores.b)
         };
+
+        // Factor more/less players per team
+        // Count players
+
+        // 1 - 3 (1 + 1 - 3) =
+        // 3 - 1
+        // 1 - 2
+        // 2 - 1
+        // 1 - 1
+        // 3 - 2
+        // 4 - 1
+
+        var playerCountA = match.teams[0].players.length;
+        var playerCountB = match.teams[1].players.length;
+
+
+        var coefficient = (1 + Math.abs(playerCountA - playerCountB));
+        if (playerCountA > playerCountB){
+            finalScores.b = Math.pow(finalScores.b, coefficient);
+            finalScores.a = 1 - finalScores.b;
+        } else if (playerCountB > playerCountA){
+            finalScores.a = Math.pow(finalScores.a, coefficient);
+            finalScores.b = 1 - finalScores.a;
+        }
+
+        // Set a cap
+
+        finalScores.a = Math.min(1, finalScores.a);
+        finalScores.b = Math.min(1, finalScores.b);
+
+        finalScores.a = Math.max(0, finalScores.a);
+        finalScores.b = Math.max(0, finalScores.b);
+
+        console.log("Match here: "+JSON.stringify(match));
+
+        var success = ((match.teams[0].won && finalScores.a >= finalScores.b) || (match.teams[1].won && finalScores.b >= finalScores.a));
+        var matchId = match.id;
+        Prediction.create({matchId: matchId, correct: success});
+
+        // console.log("Final scores: "+JSON.stringify(finalScores));
         cb(null, finalScores);
     });
 };
@@ -51,11 +104,12 @@ var predictionModel = {
                 console.error("Error in scorePlayer, ", err);
                 return cb(err);
             }
-            console.log("Got team scores: "+JSON.stringify(scores));
+            // console.log("Got team scores: "+JSON.stringify(scores));
             cb(null, _.sum(scores));
         });
     },
     scorePlayer: function(player, cb){
+        if (!player.actor) console.error("Unknown actor, "+JSON.stringify(player));
         Hero.findOne({name: player.actor.replace(/\*/g, '')}).lean().exec(function(err, hero){
             if (err){
                 console.error("Error finding hero in scorePlayer, ", err);
@@ -124,6 +178,14 @@ function factorScore(statName, playerStats, hero){
     if (!playerStats || !playerStats[statName] || !playerStats[statName].count) return 0;
 
     var stat = playerStats[statName];
+    var idealStat = hero["winTotal"][statName];
+    var x = idealStat - stat.count;
 
+    // return -1*Math.pow(x, 2);
+    // return stat.coefficient / Math.pow(x, 2) - 1;
+    // return 1/(.1+Math.pow(idealStat - stat.count, 2));
+
+    // return stat.coefficient * stat.count / hero["winTotal"][statName];
     return stat.coefficient * stat.count / hero["winTotal"][statName];
+    // return stat.coefficient * (1 / (hero["winTotal"][statName] - stat.count));
 }

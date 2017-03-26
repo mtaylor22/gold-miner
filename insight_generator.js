@@ -91,7 +91,7 @@ exports.gatherInsights = function(match, cb){
                         done(null, insight);
                     });
                 }, function(err, insights) {
-                    console.log("Insights: "+JSON.stringify(insights));
+                    // console.log("Insights: "+JSON.stringify(insights));
                     done(null, {
                         actor: player.actor,
                         insights: insights
@@ -120,13 +120,11 @@ function calculateImpact(stats, pseudoStats, actor, done){
 
     async.parallel({
         'true': function(done){
-            console.log("Predicting true for "+JSON.stringify(stats));
             predictionGenerator.predictMatch(stats, function(err, prediction){
                 done(err, prediction[team]);
             });
         },
         'pseudo': function(done){
-            console.log("Predicting pseudo for "+JSON.stringify(pseudoStats));
             predictionGenerator.predictMatch(pseudoStats, function(err, prediction){
                 done(err, prediction[team]);
             });

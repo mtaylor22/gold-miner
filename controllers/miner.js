@@ -1,5 +1,5 @@
 var Joi = require('joi'),
-    Boom = require('boom')
+    Boom = require('boom'),
     queryBuilder = require('./../scheduler/query_builder');
 
 exports.mine = {

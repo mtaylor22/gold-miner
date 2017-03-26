@@ -3,7 +3,8 @@ var MinerController = require('./controllers/miner'),
     MatchesController = require('./controllers/matches');
 
 exports.endpoints = [
-    { method: 'GET', path: '/predict', config: PredictorController.predict },
+    { method: 'POST', path: '/predict', config: PredictorController.predict },
+    { method: 'GET', path: '/stats', config: PredictorController.stats },
     { method: 'GET', path: '/mine', config: MinerController.mine },
     { method: 'GET', path: '/match', config: MatchesController.getMatches },
     { method: 'GET', path: '/match/{match}', config: MatchesController.getMatch},

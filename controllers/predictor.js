@@ -1,16 +1,40 @@
 var Joi = require('joi'),
-    Boom = require('boom');
+    Boom = require('boom'),
+    predictionGenerator = require('./../prediction_generator'),
+    Prediction = require('./../models/prediction').Prediction;
 
 exports.predict = {
+    cors: true,
     validate: {
-        query: {
-            hero: Joi.string().required()
+        payload: {
+            match: Joi.object().required()
         }
     },
     handler: function(request, reply) {
-        reply({
-        	success: false,
-        	hello: 'world'
-        })
+        predictionGenerator.predictMatch(request.payload.match, function(err, prediction){
+            if (err) console.error("Error predicting match: ", err);
+            reply({
+                prediction: prediction
+            });
+        });
+    }
+};
+exports.stats = {
+    cors: true,
+    validate: {
+
+    },
+    handler: function(request, reply) {
+        Prediction.count({}, function( err, fullCount){
+            if (err) console.error("Error counting stats: ", err);
+            Prediction.count({correct: true}, function( err, correctCount){
+                if (err) console.error("Error counting stats: ", err);
+                reply({
+                    total: fullCount,
+                    correct: correctCount,
+                    accuracy: correctCount / fullCount
+                });
+            });
+        });
     }
 };
