@@ -1,5 +1,3 @@
-![Gold Miner](https://raw.githubusercontent.com/mtaylor22/gold-miner/master/goldminer.jpg)
-
 Gold Miner
 =====================================
 
@@ -10,3 +8,5 @@ Gold Miner is written in Node using Hapijs, MongoDB, and Redis. This project is 
 This project is not created or maintained by Vainglory or Super Evil Megacorp
 
 For more information visit [www.tyrantsmonocle.com/](http://www.tyrantsmonocle.com/)
+
+<img align="right" height="300" src="https://raw.githubusercontent.com/mtaylor22/gold-miner/master/goldminer.jpg">
